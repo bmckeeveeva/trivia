@@ -1,5 +1,7 @@
 module UglyTrivia
   module GameEventListener
+    # SMELL #display is a detail
+    # REFACTOR Maybe rename it to #announce? Something more abstract.
     def player_added(trivial_player, number)
       display "#{trivial_player.name} was added"
       display "They are player number #{number}"
