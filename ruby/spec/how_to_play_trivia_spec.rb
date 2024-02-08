@@ -71,12 +71,15 @@ describe "How to play Trivia" do
   describe 'Rolling the die' do
     it 'does not advance a player when they roll a 0'
 
-    it 'reports who is the current player' do
-      game = game_with_commentary_involving(['Player 1', 'Player 2'])
+    it 'reports which player is the current player' do
+      # metaconstant trick to clarify intention
+      game = game_with_commentary_involving(['::Current Player::', '::Definitely Not the Current Player::'])
 
       game.roll(6)
 
-      expect(game.commentary).to include(match(/Player \d is the current player/))
+      # Use delimiters around the dynamic part to make it easier to identify, which
+      # gives us more confidence in the assertion.
+      expect(game.commentary).to include(match(/::Current Player:: is the current player/))
     end
 
     it 'reports the number the current player rolled' do
