@@ -63,8 +63,11 @@ describe "How to play Trivia" do
     it 'reports the player who is playing and what player number they are' do
       game = game_with_commentary_involving(['Khushboo'])
 
+      # REFACTOR Extract to expect(reported_players(game.commentary)).to include('Khushboo')
       expect(game.commentary).to include('Khushboo was added')
       expect(game.commentary).to include(match(/They are player number \d/))
+
+      # How to check the player number, though? We're no longer checking it.
     end
   end
 
