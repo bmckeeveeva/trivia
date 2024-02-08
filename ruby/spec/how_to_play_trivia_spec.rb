@@ -504,6 +504,7 @@ describe "How to play Trivia" do
   end
 
   def game_with_commentary_involving(players)
+    # REFACTOR Rename with -> involving
     UglyTrivia::GameWithCommentary.with(players)
   end
 end
