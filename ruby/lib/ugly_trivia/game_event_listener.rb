@@ -1,4 +1,7 @@
 module UglyTrivia
+  # This is a particular implementation of GameEventListener.
+  # Ruby has no interface types. :P
+  # In Java, this would be an interface with all default methods.
   module GameEventListener
     def player_added(trivial_player, number)
       display "#{trivial_player.name} was added"
