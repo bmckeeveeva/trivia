@@ -21,12 +21,12 @@ public class Game {
 	PrintWriter output;
 
     public Game(){
-		this.output = new PrintWriter(System.out, true);
-		initializeQuestions();
+		this(new PrintWriter(System.out, true));
 	}
 
 	public Game(PrintWriter output){
 		this.output = output;
+		initializeQuestions();
 	}
 
 	private void initializeQuestions() {
