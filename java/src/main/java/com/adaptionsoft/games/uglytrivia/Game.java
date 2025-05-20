@@ -32,23 +32,13 @@ public class Game {
 	private void initializeQuestions() {
 		for (int i = 0; i < 50; i++) {
 			popQuestions.addLast("Pop Question " + i);
-			scienceQuestions.addLast(("Science Question " + i));
-			sportsQuestions.addLast(("Sports Question " + i));
-			rockQuestions.addLast(createRockQuestion(i));
+			scienceQuestions.addLast("Science Question " + i);
+			sportsQuestions.addLast("Sports Question " + i);
+			rockQuestions.addLast("Rock Question " + i);
 		}
 	}
 
-	public String createRockQuestion(int index){
-		return "Rock Question " + index;
-	}
-	
-	public boolean isPlayable() {
-		return (howManyPlayers() >= 2);
-	}
-
 	public boolean add(String playerName) {
-		
-		
 	    players.add(playerName);
 	    places[howManyPlayers()] = 0;
 	    purses[howManyPlayers()] = 0;
@@ -86,7 +76,6 @@ public class Game {
 				}
 			
 		} else {
-		
 			places[currentPlayer] = places[currentPlayer] + roll;
 			if (places[currentPlayer] > 11) places[currentPlayer] = places[currentPlayer] - 12;
 			
@@ -96,7 +85,6 @@ public class Game {
 			output.println("The category is " + currentCategory());
 			askQuestion();
 		}
-		
 	}
 
 	private void askQuestion() {
@@ -144,9 +132,6 @@ public class Game {
 				if (currentPlayer == players.size()) currentPlayer = 0;
 				return true;
 			}
-			
-			
-			
 		} else {
 		
 			output.println("Answer was corrent!!!!");
@@ -173,7 +158,6 @@ public class Game {
 		if (currentPlayer == players.size()) currentPlayer = 0;
 		return true;
 	}
-
 
 	private boolean didPlayerWin() {
 		return !(purses[currentPlayer] == 6);
