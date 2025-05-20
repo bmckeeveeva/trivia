@@ -1,4 +1,4 @@
-My approach:
+## My approach
 
 * Fixed IDE warnings - commit
 * Broke dependency on System.out with PrintWriter- commit
