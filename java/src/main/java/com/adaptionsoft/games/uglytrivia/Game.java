@@ -15,7 +15,7 @@ public class Game {
 
 	private final List<Player> players;
 	private final Printer printer;
-	private final Changer changer;
+	private final ActionChanger actionChanger;
 
     public Game() {
 		this(new PrintWriter(System.out, true));
@@ -23,8 +23,8 @@ public class Game {
 
 	public Game(PrintWriter output) {
 		this.players = new ArrayList<>();
-		this.printer = new Printer(output);
-		this.changer = new Changer();
+		this.printer = new Printer(output, this::currentPlayer, this::currentCategory);
+		this.actionChanger = new ActionChanger(this::currentPlayer);
 		initializeQuestions();
 	}
 
@@ -38,7 +38,7 @@ public class Game {
 	}
 
 	public boolean add(String playerName) {
-		players.add(new Player(playerName, Changer.NORMAL));
+		players.add(new Player(playerName, ActionChanger.NORMAL));
 
 	    printer.println(playerName + " was added");
 	    printer.println("They are player number " + players.size());
@@ -55,7 +55,7 @@ public class Game {
 
 		Player player = currentPlayer();
 
-		player.roll(changer, printer, roll);
+		player.roll(actionChanger, printer, roll);
 
 		if (player.shouldIncrementPlace()) {
 			player.incrementPlace(roll);
@@ -96,7 +96,7 @@ public class Game {
 	public boolean wasCorrectlyAnswered() {
 		Player player = currentPlayer();
 
-		player.wasCorrectlyAnswered(changer, printer);
+		player.wasCorrectlyAnswered(actionChanger, printer);
 
 		if (player.shouldIncrementPurse()) {
 			player.incrementPurse();
@@ -114,7 +114,7 @@ public class Game {
 		printer.println("Question was incorrectly answered");
 		printer.println("{player} was sent to the penalty box");
 
-		player.wrongAnswer(changer, printer);
+		player.wrongAnswer(actionChanger, printer);
 
 		nextPlayer();
 		return !player.playerWon();
@@ -128,44 +128,4 @@ public class Game {
 		return players.get(currentPlayer);
 	}
 
-	class Changer implements Actions.Changer {
-		private static final Actions NORMAL = new NormalActions();
-		private static final Actions IN_PENALTY_BOX = new InPenaltyBoxActions();
-		private static final Actions GETTING_OUT_OF_PENALTY_BOX = new GettingOutOfPenaltyBoxActions();
-
-		@Override
-		public void normal() {
-			currentPlayer().setActions(NORMAL);
-		}
-
-		@Override
-		public void inPenaltyBox() {
-			currentPlayer().setActions(IN_PENALTY_BOX);
-		}
-
-		@Override
-		public void gettingOutOfPenaltyBox() {
-			currentPlayer().setActions(GETTING_OUT_OF_PENALTY_BOX);
-		}
-	}
-
-	class Printer implements Actions.Printer {
-		private final PrintWriter output;
-
-		Printer(PrintWriter output) {
-			this.output = output;
-		}
-
-		@Override
-		public void println(String template) {
-			Player player = currentPlayer();
-
-			output.println(template
-					.replace("{player}", player.getName())
-					.replace("{location}", String.valueOf(player.getPlace()))
-					.replace("{category}", currentCategory())
-					.replace("{coins}", String.valueOf(player.getPurse()))
-			);
-		}
-	}
 }

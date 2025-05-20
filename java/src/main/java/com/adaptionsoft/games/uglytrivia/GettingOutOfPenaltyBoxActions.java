@@ -2,18 +2,18 @@ package com.adaptionsoft.games.uglytrivia;
 
 class GettingOutOfPenaltyBoxActions implements Actions {
     @Override
-    public void roll(Changer changer, Printer printer, int roll) {
+    public void roll(ActionChanger actionChanger, Printer printer, int roll) {
         throw new IllegalStateException("Cannot be 'GettingOutOfPenaltyBoxActions'");
     }
 
     @Override
-    public void wasCorrectlyAnswered(Changer changer, Printer printer) {
-        changer.normal();
+    public void wasCorrectlyAnswered(ActionChanger actionChanger, Printer printer) {
+        actionChanger.normal();
     }
 
     @Override
-    public void wrongAnswer(Changer changer, Printer printer) {
-        changer.inPenaltyBox();
+    public void wrongAnswer(ActionChanger actionChanger, Printer printer) {
+        actionChanger.inPenaltyBox();
     }
 
     @Override

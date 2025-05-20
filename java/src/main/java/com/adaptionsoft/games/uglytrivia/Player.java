@@ -13,11 +13,11 @@ class Player implements Actions {
         this.purse = 0;
     }
 
-    public void setActions(Actions actions) {
+    void setActions(Actions actions) {
         this.actions = actions;
     }
 
-    public void incrementPlace(int increment) {
+    void incrementPlace(int increment) {
         this.place = (place + increment) % 12;
     }
 
@@ -25,35 +25,35 @@ class Player implements Actions {
         purse++;
     }
 
-    public String getName() {
+    String getName() {
         return name;
     }
 
-    public int getPlace() {
+    int getPlace() {
         return place;
     }
 
-    public int getPurse() {
+    int getPurse() {
         return purse;
     }
 
-    public boolean playerWon() {
+    boolean playerWon() {
         return purse == 6;
     }
 
     @Override
-    public void roll(Changer changer, Printer printer, int roll) {
-        actions.roll(changer, printer, roll);
+    public void roll(ActionChanger actionChanger, Printer printer, int roll) {
+        actions.roll(actionChanger, printer, roll);
     }
 
     @Override
-    public void wasCorrectlyAnswered(Changer changer, Printer printer) {
-        actions.wasCorrectlyAnswered(changer, printer);
+    public void wasCorrectlyAnswered(ActionChanger actionChanger, Printer printer) {
+        actions.wasCorrectlyAnswered(actionChanger, printer);
     }
 
     @Override
-    public void wrongAnswer(Changer changer, Printer printer) {
-        actions.wrongAnswer(changer, printer);
+    public void wrongAnswer(ActionChanger actionChanger, Printer printer) {
+        actions.wrongAnswer(actionChanger, printer);
     }
 
     @Override
