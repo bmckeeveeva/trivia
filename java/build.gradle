@@ -14,8 +14,8 @@ version = '1.0-SNAPSHOT'
 description = 'uglytrivia'
 
 java {
-    sourceCompatibility = 1.11
-    targetCompatibility = 1.11
+    sourceCompatibility = 1.17
+    targetCompatibility = 1.17
 }
 
 test {
