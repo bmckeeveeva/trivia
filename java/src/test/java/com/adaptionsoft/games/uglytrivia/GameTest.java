@@ -50,7 +50,7 @@ class GameTest {
         boolean notAWinner = captureOutput(() -> game.wasCorrectlyAnswered());
 
         assertEquals(
-    "Answer was corrent!!!!\n" +
+    "Answer was correct!!!!\n" +
             "Bob now has 1 Gold Coins.\n",
             capturedOutput.toString());
 
@@ -148,7 +148,7 @@ class GameTest {
         boolean notAWinner = captureOutput(() -> game.wasCorrectlyAnswered());
 
         assertEquals(
-    "Answer was corrent!!!!\n" +
+    "Answer was correct!!!!\n" +
             "Bob now has 6 Gold Coins.\n",
             capturedOutput.toString());
 

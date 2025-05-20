@@ -8,7 +8,6 @@ public class Game {
     ArrayList<String> players = new ArrayList<>();
     int[] places = new int[6];
     int[] purses  = new int[6];
-    boolean[] inPenaltyBox  = new boolean[6];
     
     LinkedList<String> popQuestions = new LinkedList<>();
     LinkedList<String> scienceQuestions = new LinkedList<>();
@@ -16,16 +15,19 @@ public class Game {
     LinkedList<String> rockQuestions = new LinkedList<>();
     
     int currentPlayer = 0;
-    boolean isGettingOutOfPenaltyBox;
 
-	PrintWriter output;
+	private final Printer printer;
+	private final Actions[] playerActions = new Actions[6];
+	private final Changer changer;
+
 
     public Game(){
 		this(new PrintWriter(System.out, true));
 	}
 
 	public Game(PrintWriter output){
-		this.output = output;
+		this.printer = new Printer(output);
+		this.changer = new Changer();
 		initializeQuestions();
 	}
 
@@ -40,12 +42,13 @@ public class Game {
 
 	public boolean add(String playerName) {
 	    players.add(playerName);
-	    places[howManyPlayers()] = 0;
-	    purses[howManyPlayers()] = 0;
-	    inPenaltyBox[howManyPlayers()] = false;
+	    places[howManyPlayers() - 1] = 0;
+	    purses[howManyPlayers() - 1] = 0;
+
+		playerActions[howManyPlayers() - 1] = Changer.NORMAL;
 	    
-	    output.println(playerName + " was added");
-	    output.println("They are player number " + players.size());
+	    printer.println(playerName + " was added");
+	    printer.println("They are player number " + players.size());
 		return true;
 	}
 	
@@ -54,48 +57,31 @@ public class Game {
 	}
 
 	public void roll(int roll) {
-		output.println(players.get(currentPlayer) + " is the current player");
-		output.println("They have rolled a " + roll);
-		
-		if (inPenaltyBox[currentPlayer]) {
-			if (roll % 2 != 0) {
-				isGettingOutOfPenaltyBox = true;
-				
-				output.println(players.get(currentPlayer) + " is getting out of the penalty box");
-				places[currentPlayer] = places[currentPlayer] + roll;
-				if (places[currentPlayer] > 11) places[currentPlayer] = places[currentPlayer] - 12;
-				
-				output.println(players.get(currentPlayer)
-						+ "'s new location is " 
-						+ places[currentPlayer]);
-				output.println("The category is " + currentCategory());
-				askQuestion();
-			} else {
-				output.println(players.get(currentPlayer) + " is not getting out of the penalty box");
-				isGettingOutOfPenaltyBox = false;
-				}
-			
-		} else {
-			places[currentPlayer] = places[currentPlayer] + roll;
-			if (places[currentPlayer] > 11) places[currentPlayer] = places[currentPlayer] - 12;
-			
-			output.println(players.get(currentPlayer)
-					+ "'s new location is " 
-					+ places[currentPlayer]);
-			output.println("The category is " + currentCategory());
+		printer.println("{player} is the current player");
+		printer.println("They have rolled a " + roll);
+
+		playerActions().roll(changer, printer, roll);
+
+		if (playerActions().shouldIncrementPlace()) {
+			places[currentPlayer] = (places[currentPlayer] + roll) % 12;
+		}
+
+		if (playerActions().shouldAskQuestion()) {
+			printer.println("{player}'s new location is {location}");
+			printer.println("The category is {category}");
 			askQuestion();
 		}
 	}
 
 	private void askQuestion() {
 		if (currentCategory().equals("Pop"))
-			output.println(popQuestions.removeFirst());
+			printer.println(popQuestions.removeFirst());
 		if (currentCategory().equals("Science"))
-			output.println(scienceQuestions.removeFirst());
+			printer.println(scienceQuestions.removeFirst());
 		if (currentCategory().equals("Sports"))
-			output.println(sportsQuestions.removeFirst());
+			printer.println(sportsQuestions.removeFirst());
 		if (currentCategory().equals("Rock"))
-			output.println(rockQuestions.removeFirst());
+			printer.println(rockQuestions.removeFirst());
 	}
 	
 	
@@ -113,53 +99,80 @@ public class Game {
 	}
 
 	public boolean wasCorrectlyAnswered() {
-		if (inPenaltyBox[currentPlayer]){
-			if (isGettingOutOfPenaltyBox) {
-				output.println("Answer was correct!!!!");
-				purses[currentPlayer]++;
-				output.println(players.get(currentPlayer)
-						+ " now has "
-						+ purses[currentPlayer]
-						+ " Gold Coins.");
+		playerActions().wasCorrectlyAnswered(changer, printer);
 
-				boolean winner = didPlayerWin();
-				currentPlayer++;
-				if (currentPlayer == players.size()) currentPlayer = 0;
-
-				return winner;
-			} else {
-				currentPlayer++;
-				if (currentPlayer == players.size()) currentPlayer = 0;
-				return true;
-			}
-		} else {
-		
-			output.println("Answer was corrent!!!!");
+		if (playerActions().shouldIncrementPurse()) {
 			purses[currentPlayer]++;
-			output.println(players.get(currentPlayer)
-					+ " now has "
-					+ purses[currentPlayer]
-					+ " Gold Coins.");
-
-			boolean winner = didPlayerWin();
-			currentPlayer++;
-			if (currentPlayer == players.size()) currentPlayer = 0;
-
-			return winner;
+			printer.println("Answer was correct!!!!");
+			printer.println("{player} now has {coins} Gold Coins.");
 		}
+
+		nextPlayer();
+		return didPlayerWin();
 	}
 
-	public boolean wrongAnswer(){
-		output.println("Question was incorrectly answered");
-		output.println(players.get(currentPlayer)+ " was sent to the penalty box");
-		inPenaltyBox[currentPlayer] = true;
-		
-		currentPlayer++;
-		if (currentPlayer == players.size()) currentPlayer = 0;
-		return true;
+	public boolean wrongAnswer() {
+		printer.println("Question was incorrectly answered");
+		printer.println("{player} was sent to the penalty box");
+
+		playerActions().wrongAnswer(changer, printer);
+
+		nextPlayer();
+		return didPlayerWin();
+	}
+
+	private void nextPlayer() {
+		currentPlayer = (currentPlayer + 1) % players.size();
 	}
 
 	private boolean didPlayerWin() {
 		return !(purses[currentPlayer] == 6);
+	}
+
+	private Actions playerActions() {
+		return playerActions[currentPlayer];
+	}
+
+	private void changeTo(Actions actions) {
+		playerActions[currentPlayer] = actions;
+	}
+
+	class Changer implements Actions.Changer {
+		private static final Actions NORMAL = new NormalActions();
+		private static final Actions IN_PENALTY_BOX = new InPenaltyBoxActions();
+		private static final Actions GETTING_OUT_OF_PENALTY_BOX = new GettingOutOfPenaltyBoxActions();
+
+		@Override
+		public void normal() {
+			changeTo(NORMAL);
+		}
+
+		@Override
+		public void inPenaltyBox() {
+			changeTo(IN_PENALTY_BOX);
+		}
+
+		@Override
+		public void gettingOutOfPenaltyBox() {
+			changeTo(GETTING_OUT_OF_PENALTY_BOX);
+		}
+	}
+
+	class Printer implements Actions.Printer {
+		private final PrintWriter output;
+
+		Printer(PrintWriter output) {
+			this.output = output;
+		}
+
+		@Override
+		public void println(String template) {
+			output.println(template
+					.replace("{player}", players.get(currentPlayer))
+					.replace("{location}", String.valueOf(places[currentPlayer]))
+					.replace("{category}", currentCategory())
+					.replace("{coins}", String.valueOf(purses[currentPlayer]))
+			);
+		}
 	}
 }
