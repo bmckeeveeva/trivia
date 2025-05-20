@@ -3,12 +3,9 @@ package com.adaptionsoft.games.uglytrivia;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 public class Game {
-    ArrayList<String> players = new ArrayList<>();
-    int[] places = new int[6];
-    int[] purses  = new int[6];
-    
     LinkedList<String> popQuestions = new LinkedList<>();
     LinkedList<String> scienceQuestions = new LinkedList<>();
     LinkedList<String> sportsQuestions = new LinkedList<>();
@@ -16,16 +13,16 @@ public class Game {
     
     int currentPlayer = 0;
 
+	private final List<Player> players;
 	private final Printer printer;
-	private final Actions[] playerActions = new Actions[6];
 	private final Changer changer;
 
-
-    public Game(){
+    public Game() {
 		this(new PrintWriter(System.out, true));
 	}
 
-	public Game(PrintWriter output){
+	public Game(PrintWriter output) {
+		this.players = new ArrayList<>();
 		this.printer = new Printer(output);
 		this.changer = new Changer();
 		initializeQuestions();
@@ -41,12 +38,8 @@ public class Game {
 	}
 
 	public boolean add(String playerName) {
-	    players.add(playerName);
-	    places[howManyPlayers() - 1] = 0;
-	    purses[howManyPlayers() - 1] = 0;
+		players.add(new Player(playerName, Changer.NORMAL));
 
-		playerActions[howManyPlayers() - 1] = Changer.NORMAL;
-	    
 	    printer.println(playerName + " was added");
 	    printer.println("They are player number " + players.size());
 		return true;
@@ -60,13 +53,15 @@ public class Game {
 		printer.println("{player} is the current player");
 		printer.println("They have rolled a " + roll);
 
-		playerActions().roll(changer, printer, roll);
+		Player player = currentPlayer();
 
-		if (playerActions().shouldIncrementPlace()) {
-			places[currentPlayer] = (places[currentPlayer] + roll) % 12;
+		player.roll(changer, printer, roll);
+
+		if (player.shouldIncrementPlace()) {
+			player.incrementPlace(roll);
 		}
 
-		if (playerActions().shouldAskQuestion()) {
+		if (player.shouldAskQuestion()) {
 			printer.println("{player}'s new location is {location}");
 			printer.println("The category is {category}");
 			askQuestion();
@@ -86,55 +81,51 @@ public class Game {
 	
 	
 	private String currentCategory() {
-		if (places[currentPlayer] == 0) return "Pop";
-		if (places[currentPlayer] == 4) return "Pop";
-		if (places[currentPlayer] == 8) return "Pop";
-		if (places[currentPlayer] == 1) return "Science";
-		if (places[currentPlayer] == 5) return "Science";
-		if (places[currentPlayer] == 9) return "Science";
-		if (places[currentPlayer] == 2) return "Sports";
-		if (places[currentPlayer] == 6) return "Sports";
-		if (places[currentPlayer] == 10) return "Sports";
+		if (currentPlayer().getPlace() == 0) return "Pop";
+		if (currentPlayer().getPlace() == 4) return "Pop";
+		if (currentPlayer().getPlace() == 8) return "Pop";
+		if (currentPlayer().getPlace() == 1) return "Science";
+		if (currentPlayer().getPlace() == 5) return "Science";
+		if (currentPlayer().getPlace() == 9) return "Science";
+		if (currentPlayer().getPlace() == 2) return "Sports";
+		if (currentPlayer().getPlace() == 6) return "Sports";
+		if (currentPlayer().getPlace() == 10) return "Sports";
 		return "Rock";
 	}
 
 	public boolean wasCorrectlyAnswered() {
-		playerActions().wasCorrectlyAnswered(changer, printer);
+		Player player = currentPlayer();
 
-		if (playerActions().shouldIncrementPurse()) {
-			purses[currentPlayer]++;
+		player.wasCorrectlyAnswered(changer, printer);
+
+		if (player.shouldIncrementPurse()) {
+			player.incrementPurse();
 			printer.println("Answer was correct!!!!");
 			printer.println("{player} now has {coins} Gold Coins.");
 		}
 
 		nextPlayer();
-		return didPlayerWin();
+		return !player.playerWon();
 	}
 
 	public boolean wrongAnswer() {
+		Player player = currentPlayer();
+
 		printer.println("Question was incorrectly answered");
 		printer.println("{player} was sent to the penalty box");
 
-		playerActions().wrongAnswer(changer, printer);
+		player.wrongAnswer(changer, printer);
 
 		nextPlayer();
-		return didPlayerWin();
+		return !player.playerWon();
 	}
 
 	private void nextPlayer() {
 		currentPlayer = (currentPlayer + 1) % players.size();
 	}
 
-	private boolean didPlayerWin() {
-		return !(purses[currentPlayer] == 6);
-	}
-
-	private Actions playerActions() {
-		return playerActions[currentPlayer];
-	}
-
-	private void changeTo(Actions actions) {
-		playerActions[currentPlayer] = actions;
+	private Player currentPlayer() {
+		return players.get(currentPlayer);
 	}
 
 	class Changer implements Actions.Changer {
@@ -144,17 +135,17 @@ public class Game {
 
 		@Override
 		public void normal() {
-			changeTo(NORMAL);
+			currentPlayer().setActions(NORMAL);
 		}
 
 		@Override
 		public void inPenaltyBox() {
-			changeTo(IN_PENALTY_BOX);
+			currentPlayer().setActions(IN_PENALTY_BOX);
 		}
 
 		@Override
 		public void gettingOutOfPenaltyBox() {
-			changeTo(GETTING_OUT_OF_PENALTY_BOX);
+			currentPlayer().setActions(GETTING_OUT_OF_PENALTY_BOX);
 		}
 	}
 
@@ -167,11 +158,13 @@ public class Game {
 
 		@Override
 		public void println(String template) {
+			Player player = currentPlayer();
+
 			output.println(template
-					.replace("{player}", players.get(currentPlayer))
-					.replace("{location}", String.valueOf(places[currentPlayer]))
+					.replace("{player}", player.getName())
+					.replace("{location}", String.valueOf(player.getPlace()))
 					.replace("{category}", currentCategory())
-					.replace("{coins}", String.valueOf(purses[currentPlayer]))
+					.replace("{coins}", String.valueOf(player.getPurse()))
 			);
 		}
 	}
