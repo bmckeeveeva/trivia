@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class GameTest {
     StringWriter output = new StringWriter();
-    Game game = new Game(new PrintWriter(output));
+    Game game = new Game(new PrintWriter(output), QuestionBank.sample());
 
     StringWriter capturedOutput = new StringWriter();
 

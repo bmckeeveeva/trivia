@@ -1,8 +1,10 @@
 
 package com.adaptionsoft.games.trivia.runner;
-import java.util.Random;
 
 import com.adaptionsoft.games.uglytrivia.Game;
+import com.adaptionsoft.games.uglytrivia.QuestionBank;
+
+import java.util.Random;
 
 
 public class GameRunner {
@@ -10,7 +12,7 @@ public class GameRunner {
 	private static boolean notAWinner;
 
 	public static void main(String[] args) {
-		Game aGame = new Game();
+		Game aGame = new Game(QuestionBank.sample());
 		
 		aGame.add("Chet");
 		aGame.add("Pat");
